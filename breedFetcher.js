@@ -6,33 +6,35 @@ const rl = readline.createInterface({
   output: process.stdout,
 });
 
-let args = process.argv.slice(2);
-
-const url = `https://ap.thecatapi.com/v1/breeds/search?q=${args[0]}`;
-
 //using request to fetch the breed data from the API endpoint.
 //url is url defined above
 //error is the data object received if url not found
 //response is the HTML response received from url
 //body of response as a string
-request(url, (error, response, body) => {
-  if (typeof response === "undefined") {
-    console.log(`\n${url} NOT FOUND\n`);
-    // console.log(error);
-    rl.close();
-    return;
-  }
+const fetchBreedDescription = function(breedName, callback) {
+  const url = `https://api.thecatapi.com/v1/breeds/search?q=${breedName}`;
 
-  const data = JSON.parse(body);
+  request(url, (error, response, body) => {
+    if (typeof response === "undefined") {
+      callback(error);
+      rl.close();
+      return;
+    }
 
-  if (typeof data[0] === "undefined") {
-    console.log(`\n${args[0]} is not a cat breed\n`);
-    rl.close();
-    return;
-  }
-  if (data[0].name) {
-    console.log(`\n${data[0].description}\n`);
-    rl.close();
-    return;
-  }
-});
+    const data = JSON.parse(body);
+
+    if (typeof data[0] === "undefined") {
+      callback(error, data[0]);
+      rl.close();
+      return;
+    }
+    if (data[0].name) {
+      const desc = data[0].description;
+      callback(error, desc);
+      rl.close();
+      return;
+    }
+  });
+};
+
+module.exports = { fetchBreedDescription };
